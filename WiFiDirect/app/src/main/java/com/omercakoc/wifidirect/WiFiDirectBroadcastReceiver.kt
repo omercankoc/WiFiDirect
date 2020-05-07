@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.wifi.p2p.WifiP2pManager
+import android.widget.Toast
 
 class WiFiDirectBroadcastReceiver(
     private val manager : WifiP2pManager,
@@ -19,9 +20,11 @@ class WiFiDirectBroadcastReceiver(
                 when (state) {
                     WifiP2pManager.WIFI_P2P_STATE_ENABLED -> {
                         // Wifi P2P is enabled
+                        Toast.makeText(context,"Wi-Fi is ON!",Toast.LENGTH_LONG).show()
                     }
                     else -> {
                         // Wi-Fi P2P is not enabled
+                        Toast.makeText(context,"Wi-Fi is Off!",Toast.LENGTH_LONG).show()
                     }
                 }
             }
