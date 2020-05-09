@@ -5,17 +5,16 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.wifi.WifiManager
+import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ListView
-import android.widget.TextView
+import android.widget.*
 
 class MainActivity : AppCompatActivity() {
 
+    // Definition:
     var buttonConnection : Button? = null
     var buttonDiscover : Button? = null
     var buttonSent : Button? = null
@@ -34,10 +33,15 @@ class MainActivity : AppCompatActivity() {
 
     var intentFilter : IntentFilter? = null
 
+    private val peers = mutableListOf<WifiP2pDevice>()
+    var deviceNameArray = ArrayList<String>()
+    var deviceArray = ArrayList<WifiP2pDevice>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Initialize:
         buttonConnection = findViewById<Button>(R.id.buttonConnection) as Button
         buttonDiscover = findViewById<Button>(R.id.buttonDiscover) as Button
         buttonSent = findViewById<Button>(R.id.buttonSent) as Button
@@ -61,7 +65,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         buttonConnection!!.setOnClickListener(object : View.OnClickListener {
-            override fun onClick(view : View){
+            override fun onClick(view : View?){
                 if(wifiManager!!.isWifiEnabled){
                     wifiManager!!.setWifiEnabled(false)
                     buttonConnection!!.setText("Wi-Fi On")
@@ -71,6 +75,52 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+
+        buttonDiscover!!.setOnClickListener(object : View.OnClickListener{
+            override fun onClick(view: View?) {
+                manager!!.discoverPeers(channel, object : WifiP2pManager.ActionListener{
+                    override fun onSuccess() {
+                        textViewStatus!!.setText("Discovery Started!")
+                    }
+
+                    override fun onFailure(reason: Int) {
+                        textViewStatus!!.setText("Discovery Started Failed!")
+                    }
+                })
+            }
+        })
+    }
+
+    val peerListListener = WifiP2pManager.PeerListListener { peerList ->
+        if (peerList.deviceList != peers) {
+            peers.clear()
+            peers.addAll(peerList.deviceList)
+
+            deviceNameArray = ArrayList<String>(peerList.deviceList.size)
+            deviceArray = ArrayList<WifiP2pDevice>(peerList.deviceList.size)
+            var index : Int = 0
+
+            /*
+            lateinit var device : WifiP2pDevice
+            for(device in peerList.deviceList){
+                deviceNameArray[index] = device.deviceName
+                deviceArray[index] = device
+            } */
+
+            peerList.deviceList.forEach {
+                deviceNameArray[index] = it.deviceName
+                deviceArray[index] = it
+            }
+
+            val adapter : ArrayAdapter<String> =
+                ArrayAdapter(this,android.R.layout.simple_expandable_list_item_1,deviceNameArray)
+            listViewConnections!!.adapter = adapter
+
+            if(peers.isEmpty()){
+                Toast.makeText(this,"No Device Found!",Toast.LENGTH_LONG).show()
+                return@PeerListListener
+            }
+        }
     }
 
     /* register the broadcast receiver with the intent values to be matched */
