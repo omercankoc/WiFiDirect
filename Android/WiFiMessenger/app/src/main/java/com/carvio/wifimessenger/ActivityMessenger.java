@@ -1,5 +1,6 @@
 package com.carvio.wifimessenger;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
@@ -16,6 +17,8 @@ import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -61,6 +64,8 @@ public class ActivityMessenger extends AppCompatActivity {
     String[] arrayDeviceNames;
     WifiP2pDevice[] arrayDevices;
 
+    static final int MESSAGE_READ = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,8 +76,21 @@ public class ActivityMessenger extends AppCompatActivity {
         statusChange();
         discoveryDevices();
 
-
     }
+
+    Handler handler = new Handler(new Handler.Callback(){
+        @Override
+        public boolean handleMessage(@NonNull Message msg) {
+            switch (msg.what){
+                case MESSAGE_READ:
+                    byte[] readBuffer = (byte[])msg.obj;
+                    String tempMessage = new String(readBuffer,0,msg.arg1);
+                    textViewMessage.setText(tempMessage);
+            }
+            return true;
+        }
+    });
+
 
     public void initializeUIs() {
         linearLayoutView = findViewById(R.id.linearLayoutView);
