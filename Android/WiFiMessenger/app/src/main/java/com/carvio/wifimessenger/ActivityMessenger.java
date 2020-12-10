@@ -10,11 +10,14 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
+import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -23,6 +26,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +45,7 @@ public class ActivityMessenger extends AppCompatActivity {
     private ListView listViewDevices;
 
     private LinearLayout linearLayoutMessenger;
+    TextView textViewInfo;
     private TextView textViewMessage;
     private Button buttonSend;
     private EditText editTextMessage;
@@ -72,6 +81,7 @@ public class ActivityMessenger extends AppCompatActivity {
         buttonDiscovery = findViewById(R.id.buttonDiscovery);
         listViewDevices = findViewById(R.id.listViewDevices);
         linearLayoutMessenger = findViewById(R.id.linearLayoutMessenger);
+        textViewInfo = findViewById(R.id.textViewInfo);
         textViewMessage = findViewById(R.id.textViewMessage);
         buttonSend = findViewById(R.id.buttonSend);
         editTextMessage = findViewById(R.id.editTextMessage);
@@ -117,6 +127,18 @@ public class ActivityMessenger extends AppCompatActivity {
         }
     };
 
+    WifiP2pManager.ConnectionInfoListener connectionInfoListener = new WifiP2pManager.ConnectionInfoListener() {
+        @Override
+        public void onConnectionInfoAvailable(WifiP2pInfo wifiP2pInfo) {
+            final InetAddress groupOwnerAddress = wifiP2pInfo.groupOwnerAddress;
+            if(wifiP2pInfo.groupFormed && wifiP2pInfo.isGroupOwner){
+                textViewInfo.setText("Server");
+            } else if(wifiP2pInfo.groupFormed) {
+                textViewInfo.setText("Client");
+            }
+        }
+    };
+
     public void statusControl() {
         if (wifiManager.isWifiEnabled()) {
             buttonStatus.setText("WiFi is Enable");
@@ -148,12 +170,39 @@ public class ActivityMessenger extends AppCompatActivity {
                 wifiP2pManager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
                     @Override
                     public void onSuccess() {
-                        buttonDiscovery.setText("Started");
+                        textViewInfo.setText("Discovery Started");
                     }
 
                     @Override
                     public void onFailure(int i) {
-                        buttonDiscovery.setText("Failed");
+                        textViewInfo.setText("Discovery is Failed");
+                    }
+                });
+            }
+        });
+    }
+
+    public void lister(){
+        listViewDevices.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @SuppressLint("MissingPermission")
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                final WifiP2pDevice device = arrayDevices[i];
+                WifiP2pConfig config = new WifiP2pConfig();
+                config.deviceAddress = device.deviceAddress;
+
+                wifiP2pManager.connect(channel, config, new WifiP2pManager.ActionListener() {
+                    @SuppressLint("MissingPermission")
+                    @Override
+                    public void onSuccess() {
+                        Toast.makeText(getApplicationContext(),"Connectec to" +
+                                device.deviceName,Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    public void onFailure(int i) {
+                        Toast.makeText(getApplicationContext(),"Not Connected!",
+                                Toast.LENGTH_LONG).show();
                     }
                 });
             }
@@ -170,5 +219,39 @@ public class ActivityMessenger extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         unregisterReceiver(broadcastReceiver);
+    }
+
+    public class ServerThread extends Thread{
+        Socket socket;
+        ServerSocket serverSocket;
+
+        @Override
+        public void run() {
+            try{
+                serverSocket = new ServerSocket(8080);
+                socket = serverSocket.accept();
+            } catch (IOException e){
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public class ClientThread extends Thread{
+        Socket socket;
+        String host;
+
+        public ClientThread(InetAddress hostAddress){
+            host = hostAddress.getHostAddress();
+            socket = new Socket();
+        }
+
+        @Override
+        public void run() {
+            try{
+                socket.connect(new InetSocketAddress(host,8080),500);
+            } catch (IOException e){
+                e.printStackTrace();
+            }
+        }
     }
 }
