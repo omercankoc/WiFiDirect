@@ -30,6 +30,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -75,6 +77,7 @@ public class ActivityMessenger extends AppCompatActivity {
         statusControl();
         statusChange();
         discoveryDevices();
+        lister();
 
     }
 
@@ -237,6 +240,23 @@ public class ActivityMessenger extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         unregisterReceiver(broadcastReceiver);
+    }
+
+    public class SendReceive extends Thread{
+        private Socket socket;
+        private InputStream inputStream;
+        private OutputStream outputStream;
+
+        public SendReceive(Socket skt){
+            socket = skt;
+            try{
+                inputStream = socket.getInputStream();
+                outputStream = socket.getOutputStream();
+            } catch (IOException e){
+                e.printStackTrace();
+            }
+        }
+
     }
 
     public class ServerThread extends Thread{
