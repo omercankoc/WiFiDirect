@@ -42,13 +42,10 @@ import java.util.List;
 public class ActivityMessenger extends AppCompatActivity {
 
     private LinearLayout linearLayoutView;
-
     private LinearLayout linearLayoutConnection;
     private Button buttonStatus;
     private Button buttonDiscovery;
-
     private ListView listViewDevices;
-
     private LinearLayout linearLayoutMessenger;
     TextView textViewInfo;
     private TextView textViewMessage;
@@ -160,6 +157,9 @@ public class ActivityMessenger extends AppCompatActivity {
         }
     };
 
+    /*
+    Uygulama baslatildiginda WiFi durumunu ogren ve bildir...
+     */
     public void statusControl() {
         if (wifiManager.isWifiEnabled()) {
             buttonStatus.setText("WiFi is Enable");
@@ -168,6 +168,9 @@ public class ActivityMessenger extends AppCompatActivity {
         }
     }
 
+    /*
+    WiFi durumunu degistir ve bildir...
+     */
     public void statusChange() {
         buttonStatus.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -216,7 +219,7 @@ public class ActivityMessenger extends AppCompatActivity {
                     @SuppressLint("MissingPermission")
                     @Override
                     public void onSuccess() {
-                        Toast.makeText(getApplicationContext(),"Connectec to" +
+                        Toast.makeText(getApplicationContext(),"Connected to" +
                                 device.deviceName,Toast.LENGTH_LONG).show();
                     }
 

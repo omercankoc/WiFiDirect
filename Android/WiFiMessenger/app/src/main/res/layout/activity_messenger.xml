@@ -74,6 +74,15 @@
             android:textSize="16dp">
         </TextView>
 
+        <EditText
+            android:id="@+id/editTextMessage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text=""
+            android:textColor="@color/black">
+        </EditText>
+
         <Button
             android:id="@+id/buttonSend"
             android:layout_width="match_parent"
@@ -83,15 +92,6 @@
             android:textColor="@color/black"
             android:background="@android:color/transparent">
         </Button>
-
-        <EditText
-            android:id="@+id/editTextMessage"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text=""
-            android:textColor="@color/black">
-        </EditText>
 
     </LinearLayout>
 
