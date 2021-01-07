@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
     private PrintWriter output;
     private BufferedReader input;
     class Thread1 implements Runnable {
